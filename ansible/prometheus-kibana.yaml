@@ -1,0 +1,27 @@
+---
+- name: build and run elk
+  hosts: docker-host
+  become: yes
+  remote_user: ec2-user
+  become_user: root
+
+  tasks:
+    # - include_role:
+    #     name: prepare_docker_host
+
+    - name: copy files to remote host
+      copy:
+        src: {{ item.src }}
+        dest: {{ item.dest }}
+      with_items:
+      - { src: ../logstash/, dest: /opt/elk-stack/logstash/ }
+      - { src: ../.env, dest: /opt/elk-stack/ }
+      - { src: ../docker-compose.yaml, dest: /opt/elk-stack/ }
+    
+    # use files parameter to use multiple docker-compose.yml files
+
+    - name: deploy Docker Compose stack
+      community.docker.docker_compose:
+        project_src: /opt/elk-stack/
+        files:
+        - docker-compose.yaml
